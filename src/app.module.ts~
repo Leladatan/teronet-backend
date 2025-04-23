@@ -1,0 +1,8 @@
+import { Module } from '@nestjs/common';
+
+// Подключаем модули users и posts
+
+@Module({
+  imports: [],
+})
+export class AppModule {}

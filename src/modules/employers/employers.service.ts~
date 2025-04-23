@@ -1,0 +1,118 @@
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from '@/modules/prisma/prisma.service';
+import { Employer } from '@prisma/client';
+import { defaultTake } from '@/shared/utils/default-take';
+import { ItemsPayloadDto } from '@/shared/dto/items.dto';
+import { EmployersDto } from '@/modules/employers/dto/employers.dto';
+
+@Injectable()
+export class EmployersService {
+  constructor(private prismaService: PrismaService) {}
+
+  async getEmployers({
+    limit,
+    offset,
+  }: {
+    limit: string;
+    offset: string;
+  }): Promise<ItemsPayloadDto<Employer>> {
+    return this.getUsersItemsPayloadDto({
+      limit: +limit,
+      offset: +offset,
+    });
+  }
+
+  async createEmployer(payload: EmployersDto): Promise<Employer> {
+    await this.isExistEmployerData({
+      email: payload.email,
+    });
+    return this.prismaService.employer.create({
+      data: {
+        ...payload,
+      },
+    });
+  }
+
+  async updateEmployerId({
+    id,
+    ...payload
+  }: EmployersDto & { id: number }): Promise<Employer> {
+    await this.findUserById(id);
+    return this.prismaService.employer.update({
+      where: {
+        id,
+      },
+      data: {
+        ...payload,
+      },
+    });
+  }
+
+  async deleteEmployerId(id: number): Promise<Employer> {
+    await this.findUserById(id);
+
+    return this.prismaService.employer.delete({
+      where: {
+        id,
+      },
+    });
+  }
+
+  //   Вспомогательные функции
+
+  async findUserById(id: number): Promise<Employer> {
+    const employer: Employer | null =
+      await this.prismaService.employer.findUnique({
+        where: {
+          id,
+        },
+      });
+
+    if (!employer) throw new NotFoundException('Работадатель не найден');
+
+    return employer;
+  }
+
+  async getUsersItemsPayloadDto({
+    limit = 0,
+    offset = 100,
+  }: {
+    limit: number;
+    offset: number;
+  }): Promise<ItemsPayloadDto<Employer>> {
+    const isTake: boolean = isNaN(limit);
+    const isSkip: boolean = isNaN(offset);
+
+    const [items, total] = await this.prismaService.$transaction([
+      this.prismaService.employer.findMany({
+        take: !isTake ? limit : defaultTake,
+        skip: !isSkip ? offset : 0,
+        orderBy: {
+          id: 'asc',
+        },
+      }),
+      this.prismaService.employer.count(),
+    ]);
+
+    return {
+      items,
+      total,
+    };
+  }
+
+  async isExistEmployerData({ email }: { email: string }): Promise<void> {
+    const isExistEmail: Employer | null =
+      await this.prismaService.employer.findUnique({
+        where: {
+          email,
+        },
+      });
+
+    if (isExistEmail)
+      throw new BadRequestException('Поле "Email" уже используется');
+  }
+}

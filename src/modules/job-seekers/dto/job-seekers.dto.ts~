@@ -1,0 +1,8 @@
+export class JobSeekersDto {
+  surname: string;
+  name: string;
+  patronymic: string;
+  email: string;
+  telegram: string;
+  password: string;
+}
