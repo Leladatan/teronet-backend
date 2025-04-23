@@ -29,6 +29,7 @@ export class JobSeekersService {
   async createJobSeeker(payload: JobSeekersDto): Promise<JobSeeker> {
     await this.isExistJobSeekerData({
       email: payload.email,
+      telegram: payload.telegram,
     });
     return this.prismaService.jobSeeker.create({
       data: {
@@ -104,7 +105,13 @@ export class JobSeekersService {
     };
   }
 
-  async isExistJobSeekerData({ email }: { email: string }): Promise<void> {
+  async isExistJobSeekerData({
+    email,
+    telegram,
+  }: {
+    email: string;
+    telegram: string;
+  }): Promise<void> {
     const isExistEmail: JobSeeker | null =
       await this.prismaService.jobSeeker.findUnique({
         where: {
@@ -114,5 +121,15 @@ export class JobSeekersService {
 
     if (isExistEmail)
       throw new BadRequestException('Поле "Email" уже используется');
+
+    const isExistTelegram: JobSeeker | null =
+      await this.prismaService.jobSeeker.findUnique({
+        where: {
+          telegram,
+        },
+      });
+
+    if (isExistTelegram)
+      throw new BadRequestException('Поле "Telegram" уже используется');
   }
 }

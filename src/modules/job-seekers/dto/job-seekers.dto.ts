@@ -8,9 +8,6 @@ export class JobSeekersDto {
   @IsString()
   name: string;
   @IsNotEmpty()
-  @IsString()
-  patronymic: string;
-  @IsNotEmpty()
   @IsEmail()
   email: string;
   @IsNotEmpty()
@@ -18,5 +15,10 @@ export class JobSeekersDto {
   telegram: string;
   @IsNotEmpty()
   @IsString()
+  type: 'employer' | 'job-seeker';
+  @IsNotEmpty()
+  @IsString()
   password: string;
+  @IsNotEmpty()
+  skills: string[];
 }

@@ -5,9 +5,9 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { ValidationPipe } from '@nestjs/common';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap(): Promise<void> {
-  // Инициализация сервера на основе fastify
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter(),
@@ -21,11 +21,9 @@ async function bootstrap(): Promise<void> {
     },
   );
 
-  // Объявление глобальной валидации на сервере
-
   app.useGlobalPipes(new ValidationPipe());
+  app.use(cookieParser());
 
-  // Прослушивание сервера на 4000 порту
   await app.listen(4000);
 }
 bootstrap();
