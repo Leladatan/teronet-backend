@@ -1,9 +1,17 @@
 import { Module } from '@nestjs/common';
-import { AuthModule } from '@/modules/auth/auth.module';
-import { EmployersModule } from '@/modules/employers/employers.module';
-import { JobSeekersModule } from '@/modules/job-seekers/job-seekers.module';
+import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
+import { PrismaModule } from './modules/prisma/prisma.module';
 
 @Module({
-  imports: [JobSeekersModule, EmployersModule, AuthModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    PrismaModule,
+    AuthModule,
+    UsersModule,
+  ],
 })
 export class AppModule {}

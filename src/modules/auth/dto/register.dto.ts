@@ -1,48 +1,31 @@
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsEnum, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { UserType } from '@prisma/client';
 
-export class RegisterEmployerDto {
-  @IsNotEmpty()
-  @IsString()
-  surname: string;
-  @IsNotEmpty()
-  @IsString()
-  name: string;
-  @IsNotEmpty()
+export class RegisterDto {
+  @ApiProperty({ example: 'user@example.com', description: 'User email' })
   @IsEmail()
   email: string;
-  @IsNotEmpty()
+
+  @ApiProperty({ example: '@example', description: 'User telegram' })
   @IsString()
   telegram: string;
-  @IsNotEmpty()
+
+  @ApiProperty({ example: 'password123', description: 'User password' })
   @IsString()
-  type: 'employer' | 'job-seeker';
-  @IsNotEmpty()
-  @IsString()
-  company: string;
-  @IsNotEmpty()
-  @IsString()
+  @MinLength(6)
   password: string;
+
+  @ApiProperty({ example: 'John', description: 'User first name' })
+  @IsString()
+  firstName: string;
+
+  @ApiProperty({ example: 'Doe', description: 'User last name' })
+  @IsString()
+  lastName: string;
+
+  @ApiProperty({ enum: UserType, example: UserType.JOB_SEEKER, description: 'User type' })
+  @IsEnum(UserType)
+  type: UserType;
 }
 
-export class RegisterJobSeekerDto {
-  @IsNotEmpty()
-  @IsString()
-  surname: string;
-  @IsNotEmpty()
-  @IsString()
-  name: string;
-  @IsNotEmpty()
-  @IsEmail()
-  email: string;
-  @IsNotEmpty()
-  @IsString()
-  telegram: string;
-  @IsNotEmpty()
-  @IsString()
-  type: 'employer' | 'job-seeker';
-  @IsNotEmpty()
-  @IsString()
-  password: string;
-  @IsNotEmpty()
-  skills: string[];
-}

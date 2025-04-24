@@ -1,36 +1,112 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/modules/prisma/prisma.service';
-import {
-  RegisterEmployerDto,
-  RegisterJobSeekerDto,
-} from '@/modules/auth/dto/register.dto';
-import { EmployersService } from '@/modules/employers/employers.service';
-import { JobSeekersService } from '@/modules/job-seekers/job-seekers.service';
-import { Employer, JobSeeker } from '@prisma/client';
+import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from '../prisma/prisma.service';
+import { compare, hash } from 'bcrypt';
+import { Prisma, User, UserRole, UserType } from '@prisma/client';
+import { UserResponse } from './types/user-response.type';
+import { UsersService } from '../users/users.service';
+import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
+import { Request } from 'express';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private prismaService: PrismaService,
-    private employersService: EmployersService,
-    private jobSeekersService: JobSeekersService,
+    private prisma: PrismaService,
+    private jwtService: JwtService,
+    private readonly usersService: UsersService,
+    private readonly jwtRefreshStrategy: JwtRefreshStrategy,
+    private readonly configService: ConfigService,
   ) {}
 
-  async register(
-    dto: RegisterEmployerDto | RegisterJobSeekerDto,
-  ): Promise<Employer | JobSeeker> {
-    const { type } = dto;
+  async validateUser(email: string, password: string): Promise<UserResponse | null> {
+    const user = await this.usersService.findByEmail(email);
+    if (user && (await compare(password, user.password))) {
+      const { password, ...result } = user;
+      return result as UserResponse;
+    }
+    return null;
+  }
 
-    if (type === 'employer') {
-      return await this.employersService.createEmployer(
-        dto as RegisterEmployerDto,
-      );
+  async login(user: UserResponse) {
+    const payload = { email: user.email, sub: user.id };
+    
+    const accessToken = this.jwtService.sign(payload);
+    const accessTokenExpiresIn = this.configService.get<string>('JWT_ACCESS_EXPIRATION', '1h');
+    
+    const refreshToken = this.jwtService.sign(payload, {
+      expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRATION', '7d')
+    });
+    const refreshTokenExpiresIn = this.configService.get<string>('JWT_REFRESH_EXPIRATION', '7d');
+
+    await this.prisma.token.create({
+      data: {
+        refreshToken,
+        userId: user.id,
+        expiresAt: new Date(Date.now() + this.getExpirationTimeInMs(refreshTokenExpiresIn)),
+      },
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+      accessTokenExpiresIn,
+      refreshTokenExpiresIn,
+      user,
+    };
+  }
+
+  private getExpirationTimeInMs(expiration: string): number {
+    const unit = expiration.slice(-1);
+    const value = parseInt(expiration.slice(0, -1), 10);
+    
+    switch (unit) {
+      case 's': return value * 1000;
+      case 'm': return value * 60 * 1000;
+      case 'h': return value * 60 * 60 * 1000;
+      case 'd': return value * 24 * 60 * 60 * 1000;
+      default: return 60 * 60 * 1000;
+    }
+  }
+
+  async register(data: {
+    email: string;
+    telegram: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    type: UserType;
+  }) {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: data.email },
+    });
+
+    if (existingUser) {
+      throw new ConflictException('User with this email already exists');
     }
 
-    if (type === 'job-seeker') {
-      return await this.jobSeekersService.createJobSeeker(
-        dto as RegisterJobSeekerDto,
-      );
+    const hashedPassword = await hash(data.password, 10);
+    const user = await this.prisma.user.create({
+      data: {
+        ...data,
+        password: hashedPassword,
+        role: UserRole.USER,
+      },
+    });
+    const { password, ...result } = user;
+    return this.login(result as UserResponse);
+  }
+
+  async refreshToken(refreshToken: string) {
+    try {
+      const payload = await this.jwtRefreshStrategy.validate({} as Request, { refreshToken });
+      const user = await this.usersService.findById(payload.sub);
+      if (!user) {
+        throw new UnauthorizedException();
+      }
+      return this.login(user as UserResponse);
+    } catch (error) {
+      throw new UnauthorizedException();
     }
   }
 }
