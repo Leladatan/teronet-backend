@@ -88,14 +88,14 @@ export class AuthController {
       }
     }
   })
-  @ApiResponse({ status: 401, description: 'Invalid credentials' })
+  @ApiResponse({ status: 401, description: 'Неверные учетные данные' })
   async login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
     const user = await this.authService.validateUser(
       loginDto.email,
       loginDto.password,
     );
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Неверные учетные данные');
     }
     const result = await this.authService.login(user);
     this.setTokensInCookies(res, result.accessToken, result.refreshToken);
