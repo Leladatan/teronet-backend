@@ -18,6 +18,7 @@ import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { UserType } from '@prisma/client';
+import {UsersDto} from "@/modules/users/dto/users.dto";
 
 @ApiTags('users')
 @Controller('users')
@@ -57,14 +58,7 @@ export class UsersController {
   @ApiResponse({ status: 201, description: 'User created successfully' })
   async create(
     @Body()
-    data: {
-      email: string;
-      telegram: string;
-      password: string;
-      firstName: string;
-      lastName: string;
-      type: UserType;
-    },
+    data: UsersDto,
   ) {
     return this.usersService.create(data);
   }
@@ -76,14 +70,7 @@ export class UsersController {
   async update(
     @Param('id') id: string,
     @Body()
-    data: {
-      email?: string;
-      telegram?: string;
-      password?: string;
-      firstName?: string;
-      lastName?: string;
-      type?: UserType;
-    },
+    data: UsersDto,
   ) {
     return this.usersService.update(id, data);
   }

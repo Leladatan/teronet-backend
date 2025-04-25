@@ -77,12 +77,20 @@ export class AuthService {
     lastName: string;
     type: UserType;
   }) {
-    const existingUser = await this.prisma.user.findUnique({
+    const existingUserEmail = await this.prisma.user.findUnique({
       where: { email: data.email },
     });
 
-    if (existingUser) {
-      throw new ConflictException('User with this email already exists');
+    if (existingUserEmail) {
+      throw new ConflictException('Пользователь с таким адресом электронной почты уже существует');
+    }
+
+    const existingUserTelegram = await this.prisma.user.findUnique({
+      where: { telegram: data.telegram },
+    });
+
+    if (existingUserTelegram) {
+      throw new ConflictException('Пользователь с этим telegram уже существует');
     }
 
     const hashedPassword = await hash(data.password, 10);
