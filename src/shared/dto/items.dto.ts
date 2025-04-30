@@ -1,4 +1,4 @@
-export class ItemsPayloadDto<T> {
+export class ItemsDto<T> {
   items: T[];
   total: number;
 }

@@ -2,13 +2,18 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { User, UserType } from '@prisma/client';
 import { UsersDto } from '@/modules/users/dto/users.dto';
+import {ItemsDto} from "@/shared/dto/items.dto";
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(): Promise<User[]> {
-    return this.prisma.user.findMany();
+  async findAll(): Promise<ItemsDto<User>> {
+    const [items, total] = await Promise.all([
+      this.prisma.user.findMany(),
+      this.prisma.user.count(),
+    ]);
+    return { items, total };
   }
 
   async findById(id: string): Promise<User> {
@@ -35,10 +40,14 @@ export class UsersService {
     return user;
   }
 
-  async findByType(type: UserType): Promise<User[]> {
-    return this.prisma.user.findMany({
-      where: { type },
-    });
+  async findByType(type: UserType): Promise<ItemsDto<User>> {
+    const [items, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where: { type },
+      }),
+      this.prisma.user.count(),
+    ]);
+    return { items, total };
   }
 
   async create(data: UsersDto): Promise<User> {
