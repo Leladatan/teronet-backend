@@ -45,7 +45,9 @@ export class UsersService {
       this.prisma.user.findMany({
         where: { type },
       }),
-      this.prisma.user.count(),
+      this.prisma.user.count({
+        where: { type },
+      }),
     ]);
     return { items, total };
   }
