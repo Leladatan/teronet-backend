@@ -19,8 +19,8 @@ import { PrismaModule } from '../prisma/prisma.module';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { 
-          expiresIn: configService.get<string>('JWT_ACCESS_EXPIRATION', '1h')
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_ACCESS_EXPIRATION', '1h'),
         },
       }),
       inject: [ConfigService],
@@ -28,16 +28,16 @@ import { PrismaModule } from '../prisma/prisma.module';
   ],
   controllers: [AuthController],
   providers: [
-    AuthService, 
-    JwtStrategy, 
-    RefreshTokenStrategy, 
+    AuthService,
+    JwtStrategy,
+    RefreshTokenStrategy,
     JwtRefreshStrategy,
     {
       provide: 'JWT_REFRESH_EXPIRATION',
-      useFactory: (configService: ConfigService) => 
+      useFactory: (configService: ConfigService) =>
         configService.get<string>('JWT_REFRESH_EXPIRATION', '7d'),
       inject: [ConfigService],
-    }
+    },
   ],
   exports: [AuthService],
 })

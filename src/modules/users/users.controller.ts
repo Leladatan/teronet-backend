@@ -18,7 +18,7 @@ import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { UserType } from '@prisma/client';
-import {UsersDto} from "@/modules/users/dto/users.dto";
+import { UsersDto } from '@/modules/users/dto/users.dto';
 
 @ApiTags('users')
 @Controller('users')

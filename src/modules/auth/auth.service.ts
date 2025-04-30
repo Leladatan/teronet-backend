@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { compare, hash } from 'bcrypt';
@@ -19,7 +23,10 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  async validateUser(email: string, password: string): Promise<UserResponse | null> {
+  async validateUser(
+    email: string,
+    password: string,
+  ): Promise<UserResponse | null> {
     const user = await this.usersService.findByEmail(email);
     if (user && (await compare(password, user.password))) {
       const { password, ...result } = user;
@@ -32,18 +39,26 @@ export class AuthService {
     const payload = { email: user.email, sub: user.id };
 
     const accessToken = this.jwtService.sign(payload);
-    const accessTokenExpiresIn = this.configService.get<string>('JWT_ACCESS_EXPIRATION', '1h');
+    const accessTokenExpiresIn = this.configService.get<string>(
+      'JWT_ACCESS_EXPIRATION',
+      '1h',
+    );
 
     const refreshToken = this.jwtService.sign(payload, {
-      expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRATION', '7d')
+      expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRATION', '7d'),
     });
-    const refreshTokenExpiresIn = this.configService.get<string>('JWT_REFRESH_EXPIRATION', '7d');
+    const refreshTokenExpiresIn = this.configService.get<string>(
+      'JWT_REFRESH_EXPIRATION',
+      '7d',
+    );
 
     await this.prisma.token.create({
       data: {
         refreshToken,
         userId: user.id,
-        expiresAt: new Date(Date.now() + this.getExpirationTimeInMs(refreshTokenExpiresIn)),
+        expiresAt: new Date(
+          Date.now() + this.getExpirationTimeInMs(refreshTokenExpiresIn),
+        ),
       },
     });
 
@@ -61,11 +76,16 @@ export class AuthService {
     const value = parseInt(expiration.slice(0, -1), 10);
 
     switch (unit) {
-      case 's': return value * 1000;
-      case 'm': return value * 60 * 1000;
-      case 'h': return value * 60 * 60 * 1000;
-      case 'd': return value * 24 * 60 * 60 * 1000;
-      default: return 60 * 60 * 1000;
+      case 's':
+        return value * 1000;
+      case 'm':
+        return value * 60 * 1000;
+      case 'h':
+        return value * 60 * 60 * 1000;
+      case 'd':
+        return value * 24 * 60 * 60 * 1000;
+      default:
+        return 60 * 60 * 1000;
     }
   }
 
@@ -82,7 +102,9 @@ export class AuthService {
     });
 
     if (existingUserEmail) {
-      throw new ConflictException('Пользователь с таким адресом электронной почты уже существует');
+      throw new ConflictException(
+        'Пользователь с таким адресом электронной почты уже существует',
+      );
     }
 
     const existingUserTelegram = await this.prisma.user.findUnique({
@@ -90,7 +112,9 @@ export class AuthService {
     });
 
     if (existingUserTelegram) {
-      throw new ConflictException('Пользователь с этим telegram уже существует');
+      throw new ConflictException(
+        'Пользователь с этим telegram уже существует',
+      );
     }
 
     const hashedPassword = await hash(data.password, 10);
@@ -106,11 +130,13 @@ export class AuthService {
   }
 
   async refreshToken(req: Request, refreshToken: string) {
-      const payload = await this.jwtRefreshStrategy.validate(req, { refreshToken });
-      const user = await this.usersService.findById(payload.sub);
-      if (!user) {
-        throw new UnauthorizedException();
-      }
-      return this.login(user as UserResponse);
+    const payload = await this.jwtRefreshStrategy.validate(req, {
+      refreshToken,
+    });
+    const user = await this.usersService.findById(payload.sub);
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+    return this.login(user as UserResponse);
   }
 }

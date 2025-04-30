@@ -31,9 +31,19 @@ export class AuthController {
     private readonly configService: ConfigService,
   ) {}
 
-  private setTokensInCookies(res: Response, accessToken: string, refreshToken: string) {
-    const accessTokenExpiresIn = this.configService.get<string>('JWT_ACCESS_EXPIRATION', '1h');
-    const refreshTokenExpiresIn = this.configService.get<string>('JWT_REFRESH_EXPIRATION', '7d');
+  private setTokensInCookies(
+    res: Response,
+    accessToken: string,
+    refreshToken: string,
+  ) {
+    const accessTokenExpiresIn = this.configService.get<string>(
+      'JWT_ACCESS_EXPIRATION',
+      '1h',
+    );
+    const refreshTokenExpiresIn = this.configService.get<string>(
+      'JWT_REFRESH_EXPIRATION',
+      '7d',
+    );
 
     res.cookie('access_token', accessToken, {
       httpOnly: true,
@@ -53,21 +63,26 @@ export class AuthController {
   private getExpirationTimeInMs(expiration: string): number {
     const unit = expiration.slice(-1);
     const value = parseInt(expiration.slice(0, -1), 10);
-    
+
     switch (unit) {
-      case 's': return value * 1000;
-      case 'm': return value * 60 * 1000;
-      case 'h': return value * 60 * 60 * 1000;
-      case 'd': return value * 24 * 60 * 60 * 1000;
-      default: return 60 * 60 * 1000;
+      case 's':
+        return value * 1000;
+      case 'm':
+        return value * 60 * 1000;
+      case 'h':
+        return value * 60 * 60 * 1000;
+      case 'd':
+        return value * 24 * 60 * 60 * 1000;
+      default:
+        return 60 * 60 * 1000;
     }
   }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login user' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'User successfully logged in',
     schema: {
       type: 'object',
@@ -83,13 +98,16 @@ export class AuthController {
             type: { type: 'string', enum: ['JOB_SEEKER', 'EMPLOYER'] },
             createdAt: { type: 'string', format: 'date-time' },
             updatedAt: { type: 'string', format: 'date-time' },
-          }
-        }
-      }
-    }
+          },
+        },
+      },
+    },
   })
   @ApiResponse({ status: 401, description: 'Неверные учетные данные' })
-  async login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
+  async login(
+    @Body() loginDto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const user = await this.authService.validateUser(
       loginDto.email,
       loginDto.password,
@@ -105,8 +123,8 @@ export class AuthController {
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Register new user' })
-  @ApiResponse({ 
-    status: 201, 
+  @ApiResponse({
+    status: 201,
     description: 'User successfully registered',
     schema: {
       type: 'object',
@@ -122,13 +140,16 @@ export class AuthController {
             type: { type: 'string', enum: ['JOB_SEEKER', 'EMPLOYER'] },
             createdAt: { type: 'string', format: 'date-time' },
             updatedAt: { type: 'string', format: 'date-time' },
-          }
-        }
-      }
-    }
+          },
+        },
+      },
+    },
   })
   @ApiResponse({ status: 400, description: 'Bad request' })
-  async register(@Body() registerDto: RegisterDto, @Res({ passthrough: true }) res: Response) {
+  async register(
+    @Body() registerDto: RegisterDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const result = await this.authService.register(registerDto);
     this.setTokensInCookies(res, result.accessToken, result.refreshToken);
     return { user: result.user };
@@ -139,8 +160,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Refresh access token' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Token successfully refreshed',
     schema: {
       type: 'object',
@@ -156,13 +177,16 @@ export class AuthController {
             type: { type: 'string', enum: ['JOB_SEEKER', 'EMPLOYER'] },
             createdAt: { type: 'string', format: 'date-time' },
             updatedAt: { type: 'string', format: 'date-time' },
-          }
-        }
-      }
-    }
+          },
+        },
+      },
+    },
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async refreshTokens(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+  async refreshTokens(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const refreshToken = req.cookies.refresh_token;
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token not found');

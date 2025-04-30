@@ -9,4 +9,4 @@ export type UserResponse = {
   type: UserType;
   createdAt: Date;
   updatedAt: Date;
-}; 
+};

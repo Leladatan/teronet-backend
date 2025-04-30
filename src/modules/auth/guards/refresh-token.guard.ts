@@ -19,7 +19,7 @@ export class RefreshTokenGuard extends AuthGuard('jwt-refresh') {
     if (token) {
       request.headers.authorization = `Bearer ${token}`;
     }
-    
+
     return request;
   }
-} 
+}

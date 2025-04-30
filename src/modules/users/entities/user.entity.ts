@@ -20,15 +20,29 @@ export class User {
   @ApiProperty({ example: 'password', description: 'User password (hashed)' })
   password: string;
 
-  @ApiProperty({ enum: UserRole, example: UserRole.USER, description: 'User role' })
+  @ApiProperty({
+    enum: UserRole,
+    example: UserRole.USER,
+    description: 'User role',
+  })
   role: UserRole;
 
-  @ApiProperty({ enum: UserType, example: UserType.JOB_SEEKER, description: 'User type' })
+  @ApiProperty({
+    enum: UserType,
+    example: UserType.JOB_SEEKER,
+    description: 'User type',
+  })
   type: UserType;
 
-  @ApiProperty({ example: '2023-01-01T00:00:00.000Z', description: 'Created at timestamp' })
+  @ApiProperty({
+    example: '2023-01-01T00:00:00.000Z',
+    description: 'Created at timestamp',
+  })
   createdAt: Date;
 
-  @ApiProperty({ example: '2023-01-01T00:00:00.000Z', description: 'Updated at timestamp' })
+  @ApiProperty({
+    example: '2023-01-01T00:00:00.000Z',
+    description: 'Updated at timestamp',
+  })
   updatedAt: Date;
 }
