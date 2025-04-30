@@ -39,8 +39,8 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get user by id' })
   @ApiResponse({ status: 200, description: 'Return user by id' })
-  async findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
+  async findById(@Param('id') id: string) {
+    return this.usersService.findById(id);
   }
 
   @Get('type/:type')

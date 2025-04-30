@@ -8,6 +8,7 @@ export class RefreshTokenGuard extends AuthGuard('jwt-refresh') {
     if (err || !user) {
       throw err || new UnauthorizedException();
     }
+
     return user;
   }
 

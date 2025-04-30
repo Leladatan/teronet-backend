@@ -11,26 +11,28 @@ export class UsersService {
     return this.prisma.user.findMany();
   }
 
-  async findOne(id: string): Promise<User> {
+  async findById(id: string): Promise<User> {
     const user = await this.prisma.user.findUnique({
       where: { id },
     });
 
     if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException(`Пользователь с ID ${id} не найден`);
     }
 
     return user;
   }
 
-  async findById(id: string): Promise<User> {
-    return this.findOne(id);
-  }
-
   async findByEmail(email: string): Promise<User | null> {
-    return this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { email },
     });
+
+    if (!user) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+
+    return user;
   }
 
   async findByType(type: UserType): Promise<User[]> {
@@ -49,8 +51,7 @@ export class UsersService {
     id: string,
     data: UsersDto,
   ): Promise<User> {
-    const user = await this.findOne(id);
-
+    await this.findById(id);
     return this.prisma.user.update({
       where: { id },
       data,
@@ -58,8 +59,7 @@ export class UsersService {
   }
 
   async remove(id: string): Promise<User> {
-    const user = await this.findOne(id);
-
+    await this.findById(id);
     return this.prisma.user.delete({
       where: { id },
     });
