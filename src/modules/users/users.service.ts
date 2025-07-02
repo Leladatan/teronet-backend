@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { User, UserType } from '@prisma/client';
-import { UsersDto } from '@/modules/users/dto/users.dto';
 import {ItemsDto} from "@/shared/dto/items.dto";
+import {EmployerDto, JobSeekerDto} from "@/modules/users/dto/users.dto";
 
 @Injectable()
 export class UsersService {
@@ -52,13 +52,22 @@ export class UsersService {
     return { items, total };
   }
 
-  async create(data: UsersDto): Promise<User> {
+  async remove(id: string): Promise<User> {
+    await this.findById(id);
+    return this.prisma.user.delete({
+      where: { id },
+    });
+  }
+
+  // Employer
+
+  async createEmployer(data: EmployerDto): Promise<User> {
     return this.prisma.user.create({
       data,
     });
   }
 
-  async update(id: string, data: UsersDto): Promise<User> {
+  async updateEmployer(id: string, data: EmployerDto): Promise<User> {
     await this.findById(id);
     return this.prisma.user.update({
       where: { id },
@@ -66,10 +75,20 @@ export class UsersService {
     });
   }
 
-  async remove(id: string): Promise<User> {
-    await this.findById(id);
-    return this.prisma.user.delete({
-      where: { id },
+  // JobSeeker
+
+  async createJobSeeker(data: JobSeekerDto): Promise<User> {
+    return this.prisma.user.create({
+      data,
     });
   }
+
+  async updateJobSeeker(id: string, data: JobSeekerDto): Promise<User> {
+    await this.findById(id);
+    return this.prisma.user.update({
+      where: { id },
+      data,
+    });
+  }
+
 }

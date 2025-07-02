@@ -17,11 +17,12 @@ import {
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
+import {RegisterEmployerDto, RegisterJobSeekerDto} from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
+import {EmployerResponse, JobSeekerResponse} from "@/modules/auth/types/user-response.type";
 
 @ApiTags('auth')
 @Controller('auth')
@@ -84,24 +85,6 @@ export class AuthController {
   @ApiResponse({
     status: 200,
     description: 'User successfully logged in',
-    schema: {
-      type: 'object',
-      properties: {
-        user: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-            email: { type: 'string' },
-            firstName: { type: 'string' },
-            lastName: { type: 'string' },
-            role: { type: 'string', enum: ['ADMIN', 'USER'] },
-            type: { type: 'string', enum: ['JOB_SEEKER', 'EMPLOYER'] },
-            createdAt: { type: 'string', format: 'date-time' },
-            updatedAt: { type: 'string', format: 'date-time' },
-          },
-        },
-      },
-    },
   })
   @ApiResponse({ status: 401, description: 'Неверные учетные данные' })
   async login(
@@ -120,37 +103,40 @@ export class AuthController {
     return { user: result.user };
   }
 
-  @Post('register')
+  // Employer
+
+  @Post('register/employer')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Register new user' })
   @ApiResponse({
     status: 201,
     description: 'User successfully registered',
-    schema: {
-      type: 'object',
-      properties: {
-        user: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-            email: { type: 'string' },
-            firstName: { type: 'string' },
-            lastName: { type: 'string' },
-            role: { type: 'string', enum: ['ADMIN', 'USER'] },
-            type: { type: 'string', enum: ['JOB_SEEKER', 'EMPLOYER'] },
-            createdAt: { type: 'string', format: 'date-time' },
-            updatedAt: { type: 'string', format: 'date-time' },
-          },
-        },
-      },
-    },
   })
   @ApiResponse({ status: 400, description: 'Bad request' })
-  async register(
-    @Body() registerDto: RegisterDto,
+  async registerEmployer(
+    @Body() registerDto: RegisterEmployerDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const result = await this.authService.register(registerDto);
+    const result = await this.authService.registerEmployer(registerDto as unknown as EmployerResponse);
+    this.setTokensInCookies(res, result.accessToken, result.refreshToken);
+    return { user: result.user };
+  }
+
+  // JobSeeker
+
+  @Post('register/jobseeker')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Register new user' })
+  @ApiResponse({
+    status: 201,
+    description: 'User successfully registered',
+  })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  async registerJobSeeker(
+      @Body() registerDto: RegisterJobSeekerDto,
+      @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.registerJobSeeker(registerDto as unknown as JobSeekerResponse);
     this.setTokensInCookies(res, result.accessToken, result.refreshToken);
     return { user: result.user };
   }
@@ -163,24 +149,6 @@ export class AuthController {
   @ApiResponse({
     status: 200,
     description: 'Token successfully refreshed',
-    schema: {
-      type: 'object',
-      properties: {
-        user: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-            email: { type: 'string' },
-            firstName: { type: 'string' },
-            lastName: { type: 'string' },
-            role: { type: 'string', enum: ['ADMIN', 'USER'] },
-            type: { type: 'string', enum: ['JOB_SEEKER', 'EMPLOYER'] },
-            createdAt: { type: 'string', format: 'date-time' },
-            updatedAt: { type: 'string', format: 'date-time' },
-          },
-        },
-      },
-    },
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async refreshTokens(

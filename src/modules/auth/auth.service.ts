@@ -6,12 +6,12 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { compare, hash } from 'bcrypt';
-import { UserRole, UserType } from '@prisma/client';
-import { UserResponse } from './types/user-response.type';
+import { UserRole } from '@prisma/client';
 import { UsersService } from '../users/users.service';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
+import {EmployerResponse, JobSeekerResponse} from "@/modules/auth/types/user-response.type";
 
 @Injectable()
 export class AuthService {
@@ -26,16 +26,16 @@ export class AuthService {
   async validateUser(
     email: string,
     password: string,
-  ): Promise<UserResponse | null> {
+  ): Promise<EmployerResponse | JobSeekerResponse | null> {
     const user = await this.usersService.findByEmail(email);
     if (user && (await compare(password, user.password))) {
       const { password, ...result } = user;
-      return result as UserResponse;
+      return result as EmployerResponse | JobSeekerResponse;
     }
     return null;
   }
 
-  async login(user: UserResponse) {
+  async login(user: EmployerResponse | JobSeekerResponse) {
     const payload = { email: user.email, sub: user.id };
 
     const accessToken = this.jwtService.sign(payload);
@@ -89,14 +89,9 @@ export class AuthService {
     }
   }
 
-  async register(data: {
-    email: string;
-    telegram: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    type: UserType;
-  }) {
+  // Employer
+
+  async registerEmployer(data: EmployerResponse) {
     const existingUserEmail = await this.prisma.user.findUnique({
       where: { email: data.email },
     });
@@ -120,13 +115,63 @@ export class AuthService {
     const hashedPassword = await hash(data.password, 10);
     const user = await this.prisma.user.create({
       data: {
-        ...data,
+        email: data.email,
+        telegram: data.telegram,
         password: hashedPassword,
         role: UserRole.USER,
+        type: data.type,
+        employer: {
+          create: {
+            name: data.name,
+          },
+        },
       },
     });
     const { password, ...result } = user;
-    return this.login(result as UserResponse);
+    return this.login(result as EmployerResponse);
+  }
+
+  // JobSeeker
+
+  async registerJobSeeker(data: JobSeekerResponse) {
+    const existingUserEmail = await this.prisma.user.findUnique({
+      where: { email: data.email },
+    });
+
+    if (existingUserEmail) {
+      throw new ConflictException(
+          'Пользователь с таким адресом электронной почты уже существует',
+      );
+    }
+
+    const existingUserTelegram = await this.prisma.user.findUnique({
+      where: { telegram: data.telegram },
+    });
+
+    if (existingUserTelegram) {
+      throw new ConflictException(
+          'Пользователь с этим telegram уже существует',
+      );
+    }
+
+    const hashedPassword = await hash(data.password, 10);
+    const user = await this.prisma.user.create({
+      data: {
+        email: data.email,
+        telegram: data.telegram,
+        password: hashedPassword,
+        role: UserRole.USER,
+        type: data.type,
+        jobSeeker: {
+          create: {
+            firstName: data.firstName,
+            lastName: data.lastName,
+          },
+        },
+      },
+    });
+    const { password, ...result } = user;
+    return this.login(result as JobSeekerResponse);
   }
 
   async refreshToken(req: Request, refreshToken: string) {
@@ -137,6 +182,6 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException();
     }
-    return this.login(user as UserResponse);
+    return this.login(user as EmployerResponse | JobSeekerResponse);
   }
 }

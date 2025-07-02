@@ -18,7 +18,7 @@ import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { UserType } from '@prisma/client';
-import { UsersDto } from '@/modules/users/dto/users.dto';
+import {EmployerDto, JobSeekerDto} from "@/modules/users/dto/users.dto";
 
 @ApiTags('users')
 @Controller('users')
@@ -51,30 +51,6 @@ export class UsersController {
     return this.usersService.findByType(type);
   }
 
-  @Post()
-  @UseGuards(AdminGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create new user' })
-  @ApiResponse({ status: 201, description: 'User created successfully' })
-  async create(
-    @Body()
-    data: UsersDto,
-  ) {
-    return this.usersService.create(data);
-  }
-
-  @Patch(':id')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update user' })
-  @ApiResponse({ status: 200, description: 'User updated successfully' })
-  async update(
-    @Param('id') id: string,
-    @Body()
-    data: UsersDto,
-  ) {
-    return this.usersService.update(id, data);
-  }
-
   @Delete(':id')
   @UseGuards(AdminGuard)
   @ApiBearerAuth()
@@ -82,5 +58,57 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User deleted successfully' })
   async remove(@Param('id') id: string) {
     return this.usersService.remove(id);
+  }
+
+  // Employer
+
+  @Post('')
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create new user' })
+  @ApiResponse({ status: 201, description: 'User created successfully' })
+  async createEmployer(
+      @Body()
+      data: EmployerDto,
+  ) {
+    return this.usersService.createEmployer(data);
+  }
+
+  @Patch(':id')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update user' })
+  @ApiResponse({ status: 200, description: 'User updated successfully' })
+  async updateEmployer(
+      @Param('id') id: string,
+      @Body()
+      data: EmployerDto,
+  ) {
+    return this.usersService.updateEmployer(id, data);
+  }
+
+  // JobSeeker
+
+  @Post()
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create new user' })
+  @ApiResponse({ status: 201, description: 'User created successfully' })
+  async createJobSeeker(
+      @Body()
+      data: JobSeekerDto,
+  ) {
+    return this.usersService.createJobSeeker(data);
+  }
+
+  @Patch(':id')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update user' })
+  @ApiResponse({ status: 200, description: 'User updated successfully' })
+  async updateJobSeeker(
+      @Param('id') id: string,
+      @Body()
+      data: JobSeekerDto,
+  ) {
+    return this.usersService.updateJobSeeker(id, data);
   }
 }
