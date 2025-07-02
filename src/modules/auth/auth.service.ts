@@ -11,7 +11,10 @@ import { UsersService } from '../users/users.service';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
-import {EmployerResponse, JobSeekerResponse} from "@/modules/auth/types/user-response.type";
+import {
+  EmployerResponse,
+  JobSeekerResponse,
+} from '@/modules/auth/types/user-response.type';
 
 @Injectable()
 export class AuthService {
@@ -140,7 +143,7 @@ export class AuthService {
 
     if (existingUserEmail) {
       throw new ConflictException(
-          'Пользователь с таким адресом электронной почты уже существует',
+        'Пользователь с таким адресом электронной почты уже существует',
       );
     }
 
@@ -150,7 +153,7 @@ export class AuthService {
 
     if (existingUserTelegram) {
       throw new ConflictException(
-          'Пользователь с этим telegram уже существует',
+        'Пользователь с этим telegram уже существует',
       );
     }
 

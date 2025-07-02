@@ -17,12 +17,15 @@ import {
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
-import {RegisterEmployerDto, RegisterJobSeekerDto} from './dto/register.dto';
+import { RegisterEmployerDto, RegisterJobSeekerDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
-import {EmployerResponse, JobSeekerResponse} from "@/modules/auth/types/user-response.type";
+import {
+  EmployerResponse,
+  JobSeekerResponse,
+} from '@/modules/auth/types/user-response.type';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -117,7 +120,9 @@ export class AuthController {
     @Body() registerDto: RegisterEmployerDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const result = await this.authService.registerEmployer(registerDto as unknown as EmployerResponse);
+    const result = await this.authService.registerEmployer(
+      registerDto as unknown as EmployerResponse,
+    );
     this.setTokensInCookies(res, result.accessToken, result.refreshToken);
     return { user: result.user };
   }
@@ -133,10 +138,12 @@ export class AuthController {
   })
   @ApiResponse({ status: 400, description: 'Bad request' })
   async registerJobSeeker(
-      @Body() registerDto: RegisterJobSeekerDto,
-      @Res({ passthrough: true }) res: Response,
+    @Body() registerDto: RegisterJobSeekerDto,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    const result = await this.authService.registerJobSeeker(registerDto as unknown as JobSeekerResponse);
+    const result = await this.authService.registerJobSeeker(
+      registerDto as unknown as JobSeekerResponse,
+    );
     this.setTokensInCookies(res, result.accessToken, result.refreshToken);
     return { user: result.user };
   }

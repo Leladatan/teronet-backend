@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -18,7 +19,7 @@ import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { UserType } from '@prisma/client';
-import {EmployerDto, JobSeekerDto} from "@/modules/users/dto/users.dto";
+import { EmployerDto, JobSeekerDto } from '@/modules/users/dto/users.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -47,8 +48,19 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get users by type' })
   @ApiResponse({ status: 200, description: 'Return users by type' })
-  async findByType(@Param('type') type: UserType) {
-    return this.usersService.findByType(type);
+  async findByTypeAllUsers(
+    @Param('type') type: UserType,
+    @Query('offset') offset?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const offsetNum = offset ? parseInt(offset, 10) : 0;
+    const limitNum = limit ? parseInt(limit, 10) : 10;
+
+    return this.usersService.findByTypeAllUsers({
+      type,
+      offset: offsetNum,
+      limit: limitNum,
+    });
   }
 
   @Delete(':id')
@@ -68,8 +80,8 @@ export class UsersController {
   @ApiOperation({ summary: 'Create new user' })
   @ApiResponse({ status: 201, description: 'User created successfully' })
   async createEmployer(
-      @Body()
-      data: EmployerDto,
+    @Body()
+    data: EmployerDto,
   ) {
     return this.usersService.createEmployer(data);
   }
@@ -79,9 +91,9 @@ export class UsersController {
   @ApiOperation({ summary: 'Update user' })
   @ApiResponse({ status: 200, description: 'User updated successfully' })
   async updateEmployer(
-      @Param('id') id: string,
-      @Body()
-      data: EmployerDto,
+    @Param('id') id: string,
+    @Body()
+    data: EmployerDto,
   ) {
     return this.usersService.updateEmployer(id, data);
   }
@@ -94,8 +106,8 @@ export class UsersController {
   @ApiOperation({ summary: 'Create new user' })
   @ApiResponse({ status: 201, description: 'User created successfully' })
   async createJobSeeker(
-      @Body()
-      data: JobSeekerDto,
+    @Body()
+    data: JobSeekerDto,
   ) {
     return this.usersService.createJobSeeker(data);
   }
@@ -105,9 +117,9 @@ export class UsersController {
   @ApiOperation({ summary: 'Update user' })
   @ApiResponse({ status: 200, description: 'User updated successfully' })
   async updateJobSeeker(
-      @Param('id') id: string,
-      @Body()
-      data: JobSeekerDto,
+    @Param('id') id: string,
+    @Body()
+    data: JobSeekerDto,
   ) {
     return this.usersService.updateJobSeeker(id, data);
   }
