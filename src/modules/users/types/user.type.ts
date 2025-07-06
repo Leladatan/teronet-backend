@@ -35,6 +35,7 @@ export type JobSeekerType = {
 
 export type FindUserByType = {
   type: UserType;
+  search: string;
   offset: number;
   limit: number;
 };

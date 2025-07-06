@@ -50,14 +50,16 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Return users by type' })
   async findByTypeAllUsers(
     @Param('type') type: UserType,
-    @Query('offset') offset?: string,
-    @Query('limit') limit?: string,
+    @Query('search') search: string,
+    @Query('offset') offset: string,
+    @Query('limit') limit: string,
   ) {
     const offsetNum = offset ? parseInt(offset, 10) : 0;
     const limitNum = limit ? parseInt(limit, 10) : 10;
 
     return this.usersService.findByTypeAllUsers({
       type,
+      search,
       offset: offsetNum,
       limit: limitNum,
     });

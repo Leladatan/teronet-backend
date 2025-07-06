@@ -46,14 +46,23 @@ export class UsersService {
   }
 
   async findByTypeAllUsers({
-    type,
-    offset,
-    limit,
-  }: FindUserByType): Promise<ItemsDto<User>> {
+                             type,
+                             search,
+                             offset,
+                             limit,
+                           }: FindUserByType): Promise<ItemsDto<User>> {
     if (type === 'EMPLOYER') {
       const [items, total] = await Promise.all([
         this.prisma.user.findMany({
-          where: { type },
+          where: {
+            type,
+            employer: {
+              name: {
+                contains: search ?? '',
+                mode: 'insensitive',
+              },
+            },
+          },
           include: {
             employer: true,
           },
@@ -61,7 +70,15 @@ export class UsersService {
           take: limit,
         }),
         this.prisma.user.count({
-          where: { type },
+          where: {
+            type,
+            employer: {
+              name: {
+                contains: search ?? '',
+                mode: 'insensitive',
+              },
+            },
+          },
         }),
       ]);
 
@@ -69,7 +86,25 @@ export class UsersService {
     } else {
       const [items, total] = await Promise.all([
         this.prisma.user.findMany({
-          where: { type },
+          where: {
+            type,
+            jobSeeker: {
+              OR: [
+                {
+                  firstName: {
+                    contains: search ?? '',
+                    mode: 'insensitive',
+                  },
+                },
+                {
+                  lastName: {
+                    contains: search ?? '',
+                    mode: 'insensitive',
+                  },
+                },
+              ],
+            },
+          },
           include: {
             jobSeeker: true,
           },
@@ -77,7 +112,25 @@ export class UsersService {
           take: limit,
         }),
         this.prisma.user.count({
-          where: { type },
+          where: {
+            type,
+            jobSeeker: {
+              OR: [
+                {
+                  firstName: {
+                    contains: search ?? '',
+                    mode: 'insensitive',
+                  },
+                },
+                {
+                  lastName: {
+                    contains: search ?? '',
+                    mode: 'insensitive',
+                  },
+                },
+              ],
+            },
+          },
         }),
       ]);
 
