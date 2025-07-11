@@ -65,13 +65,27 @@ export class AuthService {
       },
     });
 
-    return {
-      accessToken,
-      refreshToken,
-      accessTokenExpiresIn,
-      refreshTokenExpiresIn,
-      user,
-    };
+    if (user.type === 'EMPLOYER') {
+      const employer = await this.usersService.findEmployerById(user.id);
+
+      return {
+        accessToken,
+        refreshToken,
+        accessTokenExpiresIn,
+        refreshTokenExpiresIn,
+        user: employer,
+      };
+    } else {
+      const jobSeeker = await this.usersService.findJobSeekerById(user.id)
+
+      return {
+        accessToken,
+        refreshToken,
+        accessTokenExpiresIn,
+        refreshTokenExpiresIn,
+        user: jobSeeker,
+      };
+    }
   }
 
   private getExpirationTimeInMs(expiration: string): number {
